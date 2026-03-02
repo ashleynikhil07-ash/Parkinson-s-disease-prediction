@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Parkinson Detection</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #e3f2fd, #ffffff);
+    text-align: center;
+}
+
+/* Container */
+.container {
+    margin: 20px auto;
+    width: 90%;
+    max-width: 500px;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Upload */
+.drop-area {
+    border: 2px dashed #1565c0;
+    padding: 25px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button {
+    padding: 12px 20px;
+    background: #1565c0;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0d47a1;
+}
+
+/* Loader */
+.loader {
+    display: none;
+}
+
+/* Result Box */
+.result-box {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+/* Risk Colors */
+.low { background: #e8f5e9; color: #2e7d32; }
+.medium { background: #fff8e1; color: #f9a825; }
+.high { background: #ffebee; color: #c62828; }
+
+img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+</style>
+
+<script>
+function showLoader() {
+    document.getElementById("loader").style.display = "block";
+}
+
+/* Get Location */
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById("lat").value = position.coords.latitude;
+            document.getElementById("lon").value = position.coords.longitude;
+        });
+    }
+}
+</script>
+
+</head>
+
+<body onload="getLocation()">
+
+<div class="container">
+
+<h1>🧠 Parkinson Detection</h1>
+
+<!-- Patient Info -->
+<h3>👤 {{ session.get('user') }}</h3>
+<p>📞 {{ session.get('phone') }}</p>
+
+<a href="/logout">
+    <button style="background:red;">Logout</button>
+</a>
+
+<br><br>
+
+<form method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
+
+    <div class="drop-area">
+        <input type="file" name="image" accept="image/*" capture="camera" required>
+        <p>📂 Upload or Take Photo</p>
+    </div>
+
+    <!-- Location -->
+    <input type="hidden" name="lat" id="lat">
+    <input type="hidden" name="lon" id="lon">
+
+    <br>
+    <button type="submit">🔍 Start Diagnosis</button>
+</form>
+
+<br>
+
+<div id="loader" class="loader">
+    <p>🧠 AI is analyzing spiral pattern...</p>
+</div>
+
+<!-- Image -->
+{% if image %}
+<h3>Uploaded Image</h3>
+<img src="{{ image }}">
+{% endif %}
+
+<!-- Result -->
+{% if result %}
+<div class="result-box 
+    {% if risk == 'LOW' %}low
+    {% elif risk == 'MEDIUM' %}medium
+    {% else %}high
+    {% endif %}">
+
+    <h2>{{ result }}</h2>
+    <p><b>Confidence:</b> {{ score }}%</p>
+    <p><b>Risk Level:</b> {{ risk }}</p>
+    <p><b>Doctor Advice:</b> {{ doctor }}</p>
+</div>
+
+<br>
+
+<a href="/download">
+    <button>📄 Download Report</button>
+</a>
+{% endif %}
+
+<!-- Doctor Info -->
+{% if doctor_info %}
+<br><br>
+<div style="background:#f1f8ff; padding:15px; border-radius:10px;">
+    <h3>🏥 Nearby Doctor</h3>
+    <p><b>Name:</b> {{ doctor_info.name }}</p>
+    <p><b>Phone:</b> {{ doctor_info.phone }}</p>
+
+    <a href="https://www.google.com/maps?q={{ doctor_info.lat }},{{ doctor_info.lon }}">
+        <button>📍 Open in Maps</button>
+    </a>
+</div>
+{% endif %}
+
+<br>
+
+<p style="color:red; font-size:12px;">
+⚠️ This is not a medical diagnosis. Consult a doctor.
+</p>
+
+</div>
+
+</body>
+</html>
